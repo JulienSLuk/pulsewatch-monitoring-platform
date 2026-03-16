@@ -1,14 +1,18 @@
 # PulseWatch Monitoring Platform
 
-PulseWatch is a lightweight service monitoring system that tracks uptime, response time, and service health.
+A lightweight service monitoring system that tracks uptime, response time, and service health.
+
+## Dashboard
+
+![Dashboard](dashboard.png)
 
 ## Features
 
-- API-based service monitoring
-- Background monitoring worker
-- Live dashboard
+- Automated service monitoring
 - Response time tracking
-- Automatic failure detection
+- Background worker
+- Live dashboard
+- REST API
 
 ## Tech Stack
 
@@ -16,50 +20,21 @@ PulseWatch is a lightweight service monitoring system that tracks uptime, respon
 - FastAPI
 - SQLite
 - APScheduler
-- HTML / JavaScript dashboard
+- HTML / JavaScript
 
-## Running the Project
+## Installation
 
-Install dependencies:
-
-```
 pip install -r requirements.txt
-```
 
-Start the server:
-
-```
 python -m uvicorn app.main:app --reload
-```
-
-Open dashboard:
-
-```
-http://127.0.0.1:8000
-```
-
-## Example API
-
-Add a monitored service:
-
-```
-POST /services
-```
-
-```json
-{
-"name": "Example",
-"url": "https://example.com"
-}
-```
 
 ## Dashboard
 
-Shows service status and response time.
+http://127.0.0.1:8000
 
 ## Future Improvements
 
 - authentication
-- multi-user monitoring
+- alert notifications
 - uptime analytics
-- alerting system
+- cloud deployment
