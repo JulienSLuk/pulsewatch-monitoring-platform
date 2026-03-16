@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>PulseWatch Dashboard</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#111;
+color:white;
+text-align:center;
+}
+
+table{
+margin:auto;
+border-collapse:collapse;
+width:70%;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #444;
+}
+
+.up{
+color:lime;
+}
+
+.down{
+color:red;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>PulseWatch Monitoring Dashboard</h1>
+
+<table>
+
+<thead>
+<tr>
+<th>Service</th>
+<th>Status</th>
+<th>Response Time</th>
+</tr>
+</thead>
+
+<tbody id="services">
+
+</tbody>
+
+</table>
+
+<script>
+
+async function loadServices(){
+
+const response = await fetch('/services')
+
+const data = await response.json()
+
+const table = document.getElementById("services")
+
+table.innerHTML = ""
+
+data.forEach(service => {
+
+let statusClass = service.status === "UP" ? "up" : "down"
+
+let row = `
+<tr>
+<td>${service.name}</td>
+<td class="${statusClass}">${service.status}</td>
+<td>${service.response_time ?? "Timeout"}</td>
+</tr>
+`
+
+table.innerHTML += row
+
+})
+
+}
+
+loadServices()
+
+setInterval(loadServices,5000)
+
+</script>
+
+</body>
+</html>
