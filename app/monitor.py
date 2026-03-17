@@ -1,8 +1,9 @@
 import time
 import requests
+from datetime import datetime
 
 from .database import SessionLocal
-from .models import Service
+from .models import Service, ServiceCheck
 
 
 def check_service(service_id: int):
@@ -18,6 +19,8 @@ def check_service(service_id: int):
         print(f"[Monitor] Checking {service.name} - {service.url}")
 
         start = time.time()
+        status = "DOWN"
+        response_time = None
 
         try:
             response = requests.get(
@@ -27,23 +30,32 @@ def check_service(service_id: int):
                 headers={"User-Agent": "PulseWatch/1.0"}
             )
 
-            duration = round(time.time() - start, 3)
+            response_time = round(time.time() - start, 3)
 
             if 200 <= response.status_code < 400:
-                service.status = "UP"
-                service.response_time = duration
-                print(f"[Monitor] {service.name} is UP ({duration}s)")
+                status = "UP"
             else:
-                service.status = "DOWN"
-                service.response_time = duration
-                print(f"[Monitor] {service.name} is DOWN (status {response.status_code})")
+                status = "DOWN"
 
         except Exception as e:
-            service.status = "DOWN"
-            service.response_time = None
             print(f"[Monitor] Error checking {service.name}: {e}")
+            status = "DOWN"
+            response_time = None
 
+        service.status = status
+        service.response_time = response_time
+
+        history = ServiceCheck(
+            service_id=service.id,
+            status=status,
+            response_time=response_time,
+            checked_at=datetime.now().strftime("%H:%M:%S")
+        )
+
+        db.add(history)
         db.commit()
+
+        print(f"[Monitor] {service.name} is {status} ({response_time}s)")
 
     finally:
         db.close()

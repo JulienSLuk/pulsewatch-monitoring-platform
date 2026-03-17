@@ -9,6 +9,7 @@ from .database import engine, SessionLocal
 from .models import Base, Service
 from .schemas import ServiceCreate
 from .monitor import check_service
+from .models import Base, Service, ServiceCheck
 
 Base.metadata.create_all(bind=engine)
 
@@ -83,3 +84,15 @@ def delete_service(service_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Service deleted"}
+
+
+@app.get("/services/{service_id}/history")
+def get_service_history(service_id: int, db: Session = Depends(get_db)):
+    history = (
+        db.query(ServiceCheck)
+        .filter(ServiceCheck.service_id == service_id)
+        .order_by(ServiceCheck.id.asc())
+        .all()
+    )
+
+    return history

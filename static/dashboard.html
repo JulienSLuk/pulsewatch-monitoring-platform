@@ -34,6 +34,8 @@ color:red;
 
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 
 <body>
@@ -56,40 +58,86 @@ color:red;
 
 </table>
 
+<h2 style="margin-top:40px;">Response Time History</h2>
+<canvas id="historyChart" style="max-width:1100px; height:400px; margin: 20px auto;"></canvas>
+
 <script>
+let chart;
 
-async function loadServices(){
+async function loadServices() {
+  const response = await fetch('/services');
+  const data = await response.json();
 
-const response = await fetch('/services')
+  const table = document.getElementById("services");
+  table.innerHTML = "";
 
-const data = await response.json()
+  data.forEach(service => {
+    let statusClass = service.status === "UP" ? "up" : "down";
 
-const table = document.getElementById("services")
+    let row = `
+      <tr onclick="loadHistory(${service.id}, '${service.name}')">
+        <td>${service.name}</td>
+        <td class="${statusClass}">${service.status}</td>
+        <td>${service.response_time ?? "Timeout"}</td>
+      </tr>
+    `;
 
-table.innerHTML = ""
+    table.innerHTML += row;
+  });
 
-data.forEach(service => {
-
-let statusClass = service.status === "UP" ? "up" : "down"
-
-let row = `
-<tr>
-<td>${service.name}</td>
-<td class="${statusClass}">${service.status}</td>
-<td>${service.response_time ?? "Timeout"}</td>
-</tr>
-`
-
-table.innerHTML += row
-
-})
-
+  if (data.length > 0) {
+    loadHistory(data[0].id, data[0].name);
+  }
 }
 
-loadServices()
+async function loadHistory(serviceId, serviceName) {
+  const response = await fetch(`/services/${serviceId}/history`);
+  const history = await response.json();
 
-setInterval(loadServices,5000)
+  const labels = history.map(item => item.checked_at);
+  const values = history.map(item => item.response_time ?? 0);
 
+  const ctx = document.getElementById("historyChart").getContext("2d");
+
+  if (chart) {
+    chart.destroy();
+  }
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: labels,
+        datasets: [{
+        label: `${serviceName} Response Time (s)`,
+        data: values,
+        tension: 0.4,
+        borderWidth: 2,
+        pointRadius: 3
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+        legend: {
+            labels: { color: "white" }
+        }
+        },
+        scales: {
+        x: {
+            ticks: { color: "white" },
+            grid: { color: "rgba(255,255,255,0.05)" }
+        },
+        y: {
+            ticks: { color: "white" },
+            grid: { color: "rgba(255,255,255,0.05)" }
+        }
+        }
+    }
+    });
+}
+
+loadServices();
+setInterval(loadServices, 5000);
 </script>
 
 </body>
